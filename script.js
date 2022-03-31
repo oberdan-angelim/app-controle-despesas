@@ -66,7 +66,8 @@ const init = () => {
 
 init(); 
 
-log(document.title)
+
+
 
 // to do:
 // income em updateblaance ->  expenses em updateblaance -> refactor functions to modules
