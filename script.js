@@ -4,20 +4,26 @@ const transactionsUL = document.querySelector('#transactions')
 const incomeDisplay = document.querySelector('#money-plus')
 const expenseDisplay = document.querySelector('#money-minus')
 const balanceDisplay = document.querySelector('#balance')
+const form = document.querySelector('#form')
+const inputFormName = document.querySelector('#text')
+const inputFormAmount = document.querySelector('#amount')
 
-log(incomeDisplay, expenseDisplay, balanceDisplay)
 
-const dummyTransctions = [
-    {id: 1, name: 'Bolo', amount: -20},
-    {id: 2, name: 'Salário', amount: 300},
-    {id: 3, name: 'Violão', amount: 150},
-    {id: 4, name: 'Cerveja', amount: -30},
-]
+const localStorageTransaction = JSON.parse(localStorage.getItem('transactions'))
+let transactions  = localStorage.getItem('transactions') !== null ? localStorageTransaction : [];
+
+const removeTransaction = ID => {
+    const newTransactions = transactions.filter(transactions => transactions.id !== ID)
+    transactions = newTransactions
+    init()
+    updateLocalStorage()
+}
 
 const addTransactionToDom = transaction => {
     const operator = transaction.amount < 0 ? '-' : '+'
     const amountWithoutOperator = Math.abs(transaction.amount)
     const name = transaction.name;
+    const ID = transaction.id
     
     const li = document.createElement('li')
     const classCSS = transaction.amount > 0 ? 'plus' : 'minus'
@@ -26,11 +32,12 @@ const addTransactionToDom = transaction => {
     li.classList.add(classCSS)
    
     li.innerHTML = `
-    ${name} <span> ${operator} R$ ${amountWithoutOperator}</span><button class="delete-btn">x</button>`
+    ${name} <span> ${operator} R$ ${amountWithoutOperator}
+    </span><button onclick='removeTransaction(${ID})' 
+    class="delete-btn">x</button>`
     
     transactionsUL.append(li)
 }
-
 
 const updateBalance = (transactions) => {
 
@@ -50,24 +57,46 @@ const updateBalance = (transactions) => {
     incomeDisplay.textContent = `R$ ${income}`
     expenseDisplay.textContent = `R$ ${expenses}`
     balanceDisplay.textContent = `R$ ${total}`
-    
-    log('transaction', transactionsAmount)
-    log('total', total)
-    log('income', income)
-    log('expenses', expenses)
 }
 
-
-
 const init = () => {
-    dummyTransctions.forEach(addTransactionToDom)
-    updateBalance(dummyTransctions);
+    transactionsUL.textContent = ''
+    transactions.forEach(addTransactionToDom)
+    updateBalance(transactions);
 }
 
 init(); 
 
+const getRandomID = () => Math.round(Math.random() * 1000)
 
+const updateLocalStorage = () => {
+    localStorage.setItem('transactions', JSON.stringify(transactions))
+}
 
+const handleFormSubmit = event => {
+    event.preventDefault()
+    const transactionName = inputFormName.value.trim()
+    const transactionAmount = inputFormAmount.value.trim()
+    if(transactionName === '' || transactionAmount === '') {
+        alert('Preencha tanto nome quanto valor para transação')
+        return
+    }
 
-// to do:
-// income em updateblaance ->  expenses em updateblaance -> refactor functions to modules
+    const transaction = {
+        id: getRandomID(),
+        name: transactionName,
+        amount: Number(transactionAmount)
+    }
+
+   
+
+    transactions.push(transaction)
+
+    inputFormName.value = ''
+    inputFormAmount.value = ''
+    init();
+    updateLocalStorage()
+  
+}
+
+form.addEventListener('submit', handleFormSubmit)
